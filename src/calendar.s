@@ -371,9 +371,9 @@ highlightStart:
 highlightEnd:
     .asciz  "\x1b[0m"
 highlightSun:
-    .asciz  "\x1b[31m"
+    .asciz  "\x1b[91m"
 highlightSat:
-    .asciz  "\x1b[36m"
+    .asciz  "\x1b[96m"
 
     .data
 outputBuf:
