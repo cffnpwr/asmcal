@@ -120,13 +120,13 @@ getStrLenLoop:
 @ 格納後の先頭アドレスを返す
 @ char *storeStr(char *pool, char *str)
 storeStr:
-    push    {r2, lr}
+    push    {r1, r2, lr}
 storeStrLoop:
     ldrb    r2, [r1], #1
     cmp     r2, #0
     strneb  r2, [r0], #1
     bne     storeStrLoop
-    pop     {r2, lr}
+    pop     {r1, r2, lr}
     bx      lr
 
 
@@ -208,7 +208,7 @@ div4:
 @ r0 = 商
 @ r1 = 余り
 divmod5:
-    push    {r2, r3, r4, lr}
+    push    {r2-r4, lr}
     ldr     r2, div5magic
     smull   r4, r3, r2, r0
     asr     r4, r0, #31
@@ -220,7 +220,7 @@ divmod5:
     addlt   r1, r1, #5
     sublt   r0, r2, #1
     movge   r0, r2
-    pop     {r2, r3, r4, lr}
+    pop     {r2-r4, lr}
     bx      lr
 
 
@@ -271,6 +271,27 @@ divmod10:
     pop     {r2, r3, r4, lr}
     bx      lr
 
+    .global divmod1000000
+    .type divmod1000000, %function
+
+@ r0を1000000で割った余り
+@ r0 = 商
+@ r1 = 余り
+divmod1000000:
+    push    {r2-r4, lr}
+    ldr     r2, div1000000magic
+    smull   r4, r3, r2, r0
+    asr     r4, r0, #31
+    sub     r2, r3, r4
+    mov     r3, #10
+    mul     r1, r2, r3
+    sub     r1, r0, r1
+    cmp     r1, #0
+    addlt   r1, r1, #10
+    sublt   r0, r2, #1
+    movge   r0, r2
+    pop     {r2-r4, lr}
+    bx      lr
 
 div5magic:
     .word   0x33333334
@@ -278,6 +299,8 @@ div7magic:
     .word   0x24924925
 div10magic:
     .word   0x66666667
+div1000000magic:
+    .word   0x10c7
 
 noEnoughMsg:
     .asciz  "引数が足りません\n"

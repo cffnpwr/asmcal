@@ -11,7 +11,7 @@
 @ returns
 @   r0 = Day of Week
 zellar:
-    push    {lr}
+    push    {r1-r3, lr}
     cmp     r1, #3      @ if (y < 3)
     sublt   r0, r0, #1  @   y -= 1
     addlt   r1, r1, #12 @   m += 12
@@ -34,5 +34,5 @@ zellar:
     add     r0, r3, r2  @ r0 = y + div4(y) - div100(y) + div400(y) + div5(13 * m + 8) + d
     bl      divmod7     @ r1 = mod7(y + div4(y) - div100(y) + div400(y) + div5(13 * m + 8) + d)
     mov     r0, r1
-    pop     {lr}
+    pop     {r1-r3, lr}
     bx      lr
