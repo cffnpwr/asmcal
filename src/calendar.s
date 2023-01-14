@@ -342,10 +342,18 @@ isLeapReturn:
 @   r0 = year
 @   r1 = month
 @   r2 = Start Day of Week
+@   r3 = starts monday flag
 @ returns
 @   null
 setHoliday:
     push    {r0-r3, lr}
+    cmp     r3, #1
+    bne     passMondayCheck
+    cmpeq   r2, #6
+    moveq   r2, #0
+    addne   r2, r2, #1
+
+passMondayCheck:
     ldr     r3, =holidays   @ 祝日バッファ
 
 
