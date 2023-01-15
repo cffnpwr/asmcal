@@ -34,4 +34,4 @@ check: $(SRCS) $(HASH)
 	md5sum -c $(HASH)
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) $(HASH)
+	rm -rf $(BUILDDIR) $(TARGET)

@@ -87,7 +87,7 @@ calendarSpacingLoopEnd:
 parseArgs:
     push    {r0, lr}
     cmp     r0, #2          @ if(argc < 2)
-    movlt   r3, #1          @   error flag = 1
+    movlt   r0, #1          @   error flag = 1
     blt     errorAndExit    @   jump errorAndExit
 
     ldr     r0, [r1, #4]    @ r0 = argv[1]
@@ -102,11 +102,11 @@ parseArgs:
     sub     r0, r0, r3      @ r0 = mondayStartsFlag ? r0 - 1 : r0
 
     cmp     r0, #2          @ if(argc < 2)
-    movlt   r3, #1          @   error flag = 1
+    movlt   r0, #1          @   error flag = 1
     blt     errorAndExit    @   jump errorAndExit
 
     cmp     r0, #4          @ if(argc > 4)
-    movgt   r3, #2          @   error flag = 2
+    movgt   r0, #2          @   error flag = 2
     bgt     errorAndExit    @   jump errorAndExit
 
     mov     r2, #0          @ r2 = 0
@@ -147,18 +147,18 @@ validateYMD:
     cmp     r0, r4
     movge   r4, #9999
     cmpge   r4, r0          @ if(-9999 > r1 || r1 > 9999)
-    movlt   r3, #4          @   exit flag = 4
+    movlt   r0, #4          @   exit flag = 4
     blt     errorAndExit
 
     mov     r4, #12
     cmp     r1, #1
     cmpge   r4, r1          @ if(0 > r1 || r1 > 12)
-    movlt   r3, #5          @   exit flag = 5
+    movlt   r0, #5          @   exit flag = 5
     blt     errorAndExit
 
     cmp     r2, #0
     cmpge   r3, r2          @ if(0 > r2 || r2 < NoDiaM)
-    movlt   r3, #6          @   exit flag = 6
+    movlt   r0, #6          @   exit flag = 6
     blt     errorAndExit
 
     pop     {r0-r4, lr}
@@ -209,6 +209,8 @@ calendarDayLoop:
 @   r2 = day
 @   r3 = day offset (week pos count)
 @   r4 = starts monday flag
+@ returns
+@   r0 = output buffer 
 highlightDay:
     push    {r1-r6, lr}
 
@@ -300,6 +302,7 @@ getDays:
     pop     {r1, r2, lr}
     bx      lr
 
+
 @ 閏年ならば29、そうでなければ28を返す
 @ params
 @   r0 = year
@@ -355,8 +358,6 @@ setHoliday:
 
 passMondayCheck:
     ldr     r3, =holidays   @ 祝日バッファ
-
-
     @ 月ごとに分岐
     @ 正直、cmpを10個並べるのは気持ち悪いのでなんとかしたい
     cmp     r1, #1
@@ -515,6 +516,7 @@ sep:
 
     @ 秋分の日 天文学的計算をする
     push    {r2}
+    push    {r1}
     sub     r0, r0, #2000   @ r0 = year - 2000
     mov     r2, #45586      @ r2 = 45586
     movt    r2, #3          @ r2 = (3 << 16) + 45586 = 242194
@@ -538,6 +540,13 @@ sep:
     add     r0, r2, r1      @ r0 = 102600 + (year - 2000) * 242194 - ((year - 2000) / 4 - (year - 2000) / 100 + (year - 2000) / 400) * 1000000
     bl      divmod1000000
     add     r1, r0, #23
+
+    pop     {r2}
+    sub     r2, r1, r2      @ 秋分の日と敬老の日が1日飛ばしになるときの処理
+    cmp     r2, #2          @ if(r1 - r2 == 2) <=> [秋分の日] - [敬老の日] == 2
+    subeq   r2, r1, #1      @   秋分の日の1日前を休みにする
+    streqb  r2, [r3], #1
+
     strb    r1, [r3], #1
     pop     {r2}
 
@@ -550,6 +559,7 @@ sep:
     pop     {r1}
     addeq   r1, r1, #1      @   次の日
     streqb  r1, [r3], #1
+
 
 
     b       setHolidayEnd

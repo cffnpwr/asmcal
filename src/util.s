@@ -5,6 +5,10 @@
 
 @   引数で与えられた文字列が整数か判断する
 @   int isInt(char* str)
+@ params
+@   r0 = string address
+@ returns
+@   r0 = boolean <=> 1 or 0
 isInt:
     push    {r1, lr}
 isIntLoop:
@@ -33,12 +37,16 @@ isIntReturn:
 
 @   引数で与えられた文字列を整数に変換する
 @   int str2int(char *str)
+@ params
+@   r0 = string address
+@ returns
+@   r0 = integer
 str2int:
     push    {r1-r4, lr}
     push    {r0}
     bl      isInt       @ isInt(r0)
     cmp     r0, #0
-    moveq   r3, #3      @ exit flag = 3
+    moveq   r0, #3      @ exit flag = 3
     beq     errorAndExit@ return 1
     pop     {r0}
     mov     r2, #0      @ is minus flag
@@ -69,6 +77,10 @@ str2intReturn:
 
 @   引数で与えられた整数を文字列に変換する
 @   char *int2str(int num)
+@ params
+@   r0 = integer
+@ returns
+@   r0 = string address
 int2str:
     push    {r1-r3, lr}
     ldr     r3, =intStr
@@ -100,6 +112,10 @@ int2strLoop2:
 
 @ 文字列長を取得する
 @ int getStrLen(char *str)
+@ params
+@   r0 = string address
+@ returns
+@   r0 = string length
 getStrLen:
     push    {r1, r2, lr}
     mov     r2, r0
@@ -119,6 +135,11 @@ getStrLenLoop:
 @ r0で与えられたアドレスにr1で与えられたアドレスに格納された文字列を格納する
 @ 格納後の先頭アドレスを返す
 @ char *storeStr(char *pool, char *str)
+@ params
+@   r0 = output buffer
+@   r1 = string address
+@ returns
+@   r0 = output buffer
 storeStr:
     push    {r1, r2, lr}
 storeStrLoop:
@@ -135,15 +156,19 @@ storeStrLoop:
 
 @ 文字列出力関数
 @ printStr(char *str)
+@ params
+@   r0 = string address
+@ returns
+@   null
 printStr:
-    push    {r1, r2, r7, lr}
+    push    {r0-r2, r7, lr}
     mov     r1, r0
     bl      getStrLen
     mov     r2, r0
     mov     r0, #1
     mov     r7, #4          @ write(1, r1, r2)
     svc     #0
-    pop     {r1, r2, r7, lr}
+    pop     {r0-r2, r7, lr}
     bx      lr
 
 
@@ -151,38 +176,38 @@ printStr:
     .type errorAndExit, %function
 
 @ エラーを出して終了する
-@ r3 = exit flag
+@ params
+@   r0 = exit flag
 errorAndExit:
-    cmp     r3, #1
+    cmp     r0, #1
     ldreq   r0, =noEnoughMsg
     bleq    printStr        @ 引数が足りません
     
-    cmp     r3, #2
+    cmp     r0, #2
     ldreq   r0, =tooManyMsg
     bleq    printStr        @ 引数が多すぎ
 
-    cmp     r3, #3
+    cmp     r0, #3
     ldreq   r0, =nonIntMsg
     bleq    printStr        @ 引数が整数じゃない
 
-    cmp     r3, #4
+    cmp     r0, #4
     ldreq   r0, =invalidYearMsg
     bleq    printStr        @ 年が正しくない
 
-    cmp     r3, #5
+    cmp     r0, #5
     ldreq   r0, =invalidMonthMsg
     bleq    printStr        @ 月が正しくない
 
-    cmp     r3, #6
+    cmp     r0, #6
     ldreq   r0, =invalidDayMsg
     bleq    printStr        @ 日が正しくない
 
-    cmp     r3, #7
+    cmp     r0, #7
     ldreq   r0, =unknownOptionMsg
     bleq    printStr        @ 不正なオプション
 
-    mov     r0, r3
-    bl      calExit         @ return r3
+    bl      calExit         @ return r0
 
 
     .global calExit
