@@ -308,33 +308,26 @@ getDays:
 @   r0 = year
 @ returns
 @   r0 = 28 or 29
+@
+@ Special Thanks 4401 朝倉氏
+@   この閏年判定のアイデアは4401の朝倉氏が考案しました
 isLeap:
-    push    {r1-r4, lr}
-    mov     r2, #0
+    push    {r0-r4, lr}
+    mov     r1, #2
+    mov     r2, #29
     mov     r3, #0
-    mov     r4, #0
-    and     r1, r0, #3      @ yの下位2ビット
-    cmp     r1, #0
-    moveq   r2, #1          @ f1 = if(mod4(y) == 0)
-    and     r1, r1, #15     @ (y / 4)の下位2ビット
-    cmp     r1, #0
-    moveq   r2, #1          @ f2 = if(mod16(y) == 0)
-    bl      divmod5         @ y = 5 * r0 + r1
-    cmp     r1, #0
-    bleq    divmod5         @ y = 25 * r0 + r1
-    cmpeq   r1, #0
-    moveq   r4, #1          @ f3 = if(mod25(y) == 0)
-    and     r3, r3, r4      @ r3 = if(f2 && f3)
-    cmp     r3, #1
-    moveq   r0, #29         @ 閏年である
-    beq     isLeapReturn
-    and     r4, r2, r4      @ r4 = if(f1 && f3)
-    cmp     r4, #1
-    moveq   r0, #28         @ 閏年でない
-    beq     isLeapReturn
-    cmp     r2, #1
-    moveq   r0, #29         @ 閏年である
-    movne   r0, #28         @ 閏年でない
+
+    bl      zellar          @ r0 = year/02/29の曜日
+    mov     r4, r0          @ r4 = r0
+    pop     {r0}
+    mov     r1, #3
+    mov     r2, #1
+    bl      zellar          @ r0 = year/03/01の曜日
+    
+    cmp     r0, r4          @ if(r0 == r4) <=> if([year/02/29の曜日] == [year/03/01の曜日])
+    mov     r0, #28         @ r0 = 28 <=> 閏年ではない
+    movne   r0, #29         @ r0 = 29 <=> 閏年である
+
 isLeapReturn:
     pop     {r1-r4, lr}
     bx      lr

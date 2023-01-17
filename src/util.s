@@ -308,15 +308,17 @@ divmod1000000:
     smull   r4, r3, r2, r0
     asr     r4, r0, #31
     sub     r2, r3, r4
-    mov     r3, #10
+    mov     r3, #16960      @ r3 = 16960
+    movt    r3, #15         @ r3 = (15 << 16) + 16960 = 1000000
     mul     r1, r2, r3
     sub     r1, r0, r1
     cmp     r1, #0
-    addlt   r1, r1, #10
+    addlt   r1, r1, r3
     sublt   r0, r2, #1
     movge   r0, r2
     pop     {r2-r4, lr}
     bx      lr
+    
 
 div5magic:
     .word   0x33333334
